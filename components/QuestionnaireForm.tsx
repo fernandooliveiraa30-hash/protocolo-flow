@@ -2,14 +2,14 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Send, CheckCircle2, Heart, ShieldCheck } from 'lucide-react';
+import { ChevronRight, Send, Heart, Zap, ShieldCheck } from 'lucide-react';
 
 const QUESTIONS = [
-    "Como podemos te chamar?",
-    "Qual o seu maior desejo ao buscar uma rotina mais leve?",
-    "Qual momento do dia você sente que sua bateria zera?",
-    "O que mais rouba sua energia hoje? (ex: celular, falta de sono, muitas tarefas)",
-    "Se pudesse mudar apenas uma coisa nos seus próximos 30 dias, o que seria?"
+    "Para começarmos, qual o seu primeiro nome?",
+    "Seu objetivo principal hoje: Recuperar energia ou parar de procrastinar?",
+    "Qual o horário do dia em que você sente que seu foco simplesmente desaparece?",
+    "O que mais te atrapalha hoje? (Celular, excesso de tarefas ou sono ruim)",
+    "Em 30 dias, como você quer estar se sentindo ao acordar?"
 ];
 
 export default function QuestionnaireForm() {
@@ -21,7 +21,6 @@ export default function QuestionnaireForm() {
 
     const handleNext = () => {
         if (!currentAnswer.trim()) return;
-
         const newAnswers = [...answers, currentAnswer];
         setAnswers(newAnswers);
         setCurrentAnswer('');
@@ -39,14 +38,11 @@ export default function QuestionnaireForm() {
             const response = await fetch('/api/process-questionnaire', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ answers: finalAnswers, email: 'teste@exemplo.com' }), // Em produção capturamos o e-mail real
+                body: JSON.stringify({ answers: finalAnswers, email: 'teste@exemplo.com' }),
             });
-
-            if (response.ok) {
-                setIsFinished(true);
-            }
+            if (response.ok) setIsFinished(true);
         } catch (error) {
-            console.error('Erro ao enviar:', error);
+            console.error('Erro:', error);
         } finally {
             setIsSubmitting(false);
         }
@@ -54,43 +50,39 @@ export default function QuestionnaireForm() {
 
     if (isFinished) {
         return (
-            <div className="text-center p-12 clinic-card animate-in fade-in zoom-in duration-500">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Heart className="w-10 h-10 text-green-600" />
+            <div className="text-center p-12 glass rounded-[3rem] animate-in fade-in zoom-in duration-700 max-w-lg mx-auto">
+                <div className="w-20 h-20 glass rounded-full flex items-center justify-center mx-auto mb-8 border-cyan-500/50">
+                    <Heart className="w-10 h-10 text-cyan-400 animate-pulse" />
                 </div>
-                <h2 className="text-3xl font-bold mb-4 text-slate-800">Seu protocolo está a caminho!</h2>
-                <p className="text-slate-500 max-w-sm mx-auto">
-                    Nossa inteligência está desenhando cada detalhe do seu plano. Em 2 minutos, ele chegará no e-mail cadastrado na sua compra.
+                <h2 className="text-4xl font-black mb-4 tracking-tighter">PROTOCOLO ATIVO!</h2>
+                <p className="text-slate-400 text-lg leading-relaxed">
+                    Nossos servidores estão processando seu mapa 24h. Verifique sua caixa de entrada em instantes.
                 </p>
             </div>
         );
     }
 
     return (
-        <div className="w-full max-w-2xl mx-auto">
-            <div className="mb-10">
-                <div className="h-1.5 bg-slate-100 w-full rounded-full overflow-hidden">
+        <div className="w-full max-w-3xl mx-auto px-4">
+            <div className="mb-12">
+                <div className="h-1 bg-white/5 w-full rounded-full overflow-hidden">
                     <motion.div
-                        className="h-full bg-blue-500"
-                        initial={{ width: 0 }}
+                        className="h-full bg-gradient-to-r from-cyan-400 to-purple-600"
                         animate={{ width: `${((step + 1) / QUESTIONS.length) * 100}%` }}
                     />
-                </div>
-                <div className="flex justify-between mt-3">
-                    <p className="text-sm font-medium text-slate-400">Etapa {step + 1} de {QUESTIONS.length}</p>
-                    <p className="text-sm font-bold text-blue-600 uppercase tracking-tighter">Mente Leve</p>
                 </div>
             </div>
 
             <AnimatePresence mode="wait">
                 <motion.div
                     key={step}
-                    initial={{ opacity: 0, scale: 0.98 }}
+                    initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 1.02 }}
-                    className="clinic-card p-10 bg-white"
+                    exit={{ opacity: 0, scale: 1.05 }}
+                    className="glass p-12 md:p-16 rounded-[3.5rem] border-white/10"
                 >
-                    <h2 className="text-2xl md:text-3xl font-bold mb-8 text-slate-800 leading-tight">
+                    <span className="text-cyan-500 font-bold text-xs tracking-widest uppercase mb-4 block">Pergunta {step + 1}/5</span>
+                    <h2 className="text-3xl md:text-5xl font-black mb-12 tracking-tight leading-none text-white">
                         {QUESTIONS[step]}
                     </h2>
 
@@ -100,27 +92,28 @@ export default function QuestionnaireForm() {
                         value={currentAnswer}
                         onChange={(e) => setCurrentAnswer(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleNext()}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-6 text-xl text-slate-800 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 focus:outline-none transition-all placeholder:text-slate-300"
-                        placeholder="Comece a digitar..."
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-2xl text-white focus:ring-4 focus:ring-cyan-500/20 focus:outline-none transition-all placeholder:text-white/10"
+                        placeholder="Sua resposta..."
                     />
 
                     <button
                         onClick={handleNext}
                         disabled={!currentAnswer.trim() || isSubmitting}
-                        className="mt-10 flex items-center justify-center gap-3 w-full btn-mint text-black font-bold py-6 rounded-2xl text-lg transition-all disabled:opacity-30 disabled:grayscale"
+                        className="mt-12 flex items-center justify-center gap-4 w-full btn-glow text-white font-bold py-7 rounded-2xl text-xl transition-all"
                     >
                         {isSubmitting ? (
-                            "Construindo seu Guia..."
+                            "RECODIFICANDO SUA ROTINA..."
                         ) : step === QUESTIONS.length - 1 ? (
-                            <>Concluir Meu Plano <Send className="w-5 h-5" /></>
+                            <>FINALIZAR MEU PROTOCOLO <Send className="w-6 h-6" /></>
                         ) : (
-                            <>Próxima Etapa <ChevronRight className="w-5 h-5" /></>
+                            <>PRÓXIMA ETAPA <ChevronRight className="w-6 h-6" /></>
                         )}
                     </button>
 
-                    <p className="text-center mt-6 text-slate-400 text-sm flex items-center justify-center gap-2">
-                        Suas respostas são privadas e seguras <ShieldCheck className="w-4 h-4" />
-                    </p>
+                    <div className="mt-8 flex justify-center items-center gap-6 opacity-40">
+                        <div className="flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase"><ShieldCheck className="w-4 h-4" /> IA Encrypt</div>
+                        <div className="flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase"><Zap className="w-4 h-4" /> Fast AI</div>
+                    </div>
                 </motion.div>
             </AnimatePresence>
         </div>
