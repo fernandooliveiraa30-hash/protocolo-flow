@@ -2,14 +2,14 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Send, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, Send, CheckCircle2, Heart } from 'lucide-react';
 
 const QUESTIONS = [
-    "Qual seu principal objetivo com este produto?",
-    "Em qual nível de experiência você se encontra hoje?",
-    "Quais ferramentas você já utiliza no seu dia a dia?",
-    "Qual o seu maior desafio atual?",
-    "Onde você quer chegar nos próximos 6 meses?"
+    "Como podemos te chamar?",
+    "Qual o seu maior desejo ao buscar uma rotina mais leve?",
+    "Qual momento do dia você sente que sua bateria zera?",
+    "O que mais rouba sua energia hoje? (ex: celular, falta de sono, muitas tarefas)",
+    "Se pudesse mudar apenas uma coisa nos seus próximos 30 dias, o que seria?"
 ];
 
 export default function QuestionnaireForm() {
@@ -39,7 +39,7 @@ export default function QuestionnaireForm() {
             const response = await fetch('/api/process-questionnaire', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ answers: finalAnswers }),
+                body: JSON.stringify({ answers: finalAnswers, email: 'teste@exemplo.com' }), // Em produção capturamos o e-mail real
             });
 
             if (response.ok) {
@@ -54,60 +54,73 @@ export default function QuestionnaireForm() {
 
     if (isFinished) {
         return (
-            <div className="text-center p-8 glass-card">
-                <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold mb-2">Respostas Enviadas!</h2>
-                <p className="text-zinc-400">
-                    Nossa IA está gerando seu guia personalizado. Em instantes você o receberá no e-mail cadastrado na Kiwify.
+            <div className="text-center p-12 clinic-card animate-in fade-in zoom-in duration-500">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Heart className="w-10 h-10 text-green-600" />
+                </div>
+                <h2 className="text-3xl font-bold mb-4 text-slate-800">Seu protocolo está a caminho!</h2>
+                <p className="text-slate-500 max-w-sm mx-auto">
+                    Nossa inteligência está desenhando cada detalhe do seu plano. Em 2 minutos, ele chegará no e-mail cadastrado na sua compra.
                 </p>
             </div>
         );
     }
 
     return (
-        <div className="w-full max-w-xl mx-auto">
-            <div className="mb-8">
-                <div className="h-1 bg-zinc-800 w-full rounded-full overflow-hidden">
+        <div className="w-full max-w-2xl mx-auto">
+            <div className="mb-10">
+                <div className="h-1.5 bg-slate-100 w-full rounded-full overflow-hidden">
                     <motion.div
-                        className="h-full bg-blue-600"
+                        className="h-full bg-blue-500"
                         initial={{ width: 0 }}
                         animate={{ width: `${((step + 1) / QUESTIONS.length) * 100}%` }}
                     />
                 </div>
-                <p className="text-sm text-zinc-500 mt-2">Pergunta {step + 1} de {QUESTIONS.length}</p>
+                <div className="flex justify-between mt-3">
+                    <p className="text-sm font-medium text-slate-400">Etapa {step + 1} de {QUESTIONS.length}</p>
+                    <p className="text-sm font-bold text-blue-600 uppercase tracking-tighter">Mente Leve</p>
+                </div>
             </div>
 
             <AnimatePresence mode="wait">
                 <motion.div
                     key={step}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="glass-card p-8"
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 1.02 }}
+                    className="clinic-card p-10 bg-white"
                 >
-                    <h2 className="text-xl md:text-2xl font-semibold mb-6">{QUESTIONS[step]}</h2>
+                    <h2 className="text-2xl md:text-3xl font-bold mb-8 text-slate-800 leading-tight">
+                        {QUESTIONS[step]}
+                    </h2>
 
-                    <textarea
+                    <input
+                        autoFocus
+                        type="text"
                         value={currentAnswer}
                         onChange={(e) => setCurrentAnswer(e.target.value)}
-                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-zinc-100 focus:ring-2 focus:ring-blue-600 focus:outline-none transition-all placeholder:text-zinc-600"
-                        placeholder="Digite sua resposta aqui..."
-                        rows={4}
+                        onKeyDown={(e) => e.key === 'Enter' && handleNext()}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-6 text-xl text-slate-800 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 focus:outline-none transition-all placeholder:text-slate-300"
+                        placeholder="Comece a digitar..."
                     />
 
                     <button
                         onClick={handleNext}
                         disabled={!currentAnswer.trim() || isSubmitting}
-                        className="mt-6 flex items-center justify-center gap-2 w-full bg-white text-black font-bold py-4 rounded-lg hover:bg-zinc-200 transition-colors disabled:opacity-50"
+                        className="mt-10 flex items-center justify-center gap-3 w-full btn-mint text-black font-bold py-6 rounded-2xl text-lg transition-all disabled:opacity-30 disabled:grayscale"
                     >
                         {isSubmitting ? (
-                            "Processando com IA..."
+                            "Construindo seu Guia..."
                         ) : step === QUESTIONS.length - 1 ? (
-                            <>Finalizar Guia <Send className="w-4 h-4" /></>
+                            <>Concluir Meu Plano <Send className="w-5 h-5" /></>
                         ) : (
-                            <>Próxima Pergunta <ChevronRight className="w-4 h-4" /></>
+                            <>Próxima Etapa <ChevronRight className="w-5 h-5" /></>
                         )}
                     </button>
+
+                    <p className="text-center mt-6 text-slate-400 text-sm flex items-center justify-center gap-2">
+                        Suas respostas são privadas e seguras <ShieldCheck className="w-4 h-4" />
+                    </p>
                 </motion.div>
             </AnimatePresence>
         </div>
