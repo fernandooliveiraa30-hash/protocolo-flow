@@ -1,121 +1,126 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Send, Heart, Zap, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, Loader2 } from 'lucide-react';
 
-const QUESTIONS = [
-    "Para começarmos, qual o seu primeiro nome?",
-    "Seu objetivo principal hoje: Recuperar energia ou parar de procrastinar?",
-    "Qual o horário do dia em que você sente que seu foco simplesmente desaparece?",
-    "O que mais te atrapalha hoje? (Celular, excesso de tarefas ou sono ruim)",
-    "Em 30 dias, como você quer estar se sentindo ao acordar?"
+const STEPS = [
+    {
+        question: "Como você se sente ao acordar na maioria dos dias?",
+        options: ["Energizado e pronto", "Cansado, preciso de café", "Confuso e sem rumo", "Completamente exausto"]
+    },
+    {
+        question: "Qual o seu maior 'ladrão de tempo' hoje?",
+        options: ["Redes Sociais/Celular", "Procrastinação", "Muitas reuniões", "Desorganização total"]
+    },
+    {
+        question: "Qual o seu principal objetivo com o Mente Leve?",
+        options: ["Mais produtividade", "Menos estresse", "Dormir melhor", "Ter tempo para hobbies"]
+    }
 ];
 
 export default function QuestionnaireForm() {
-    const [step, setStep] = useState(0);
+    const [currentStep, setCurrentStep] = useState(0);
     const [answers, setAnswers] = useState<string[]>([]);
-    const [currentAnswer, setCurrentAnswer] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isFinished, setIsFinished] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [progress, setProgress] = useState(0);
 
-    const handleNext = () => {
-        if (!currentAnswer.trim()) return;
-        const newAnswers = [...answers, currentAnswer];
+    const handleOptionClick = (option: string) => {
+        const newAnswers = [...answers, option];
         setAnswers(newAnswers);
-        setCurrentAnswer('');
 
-        if (step < QUESTIONS.length - 1) {
-            setStep(step + 1);
+        if (currentStep < STEPS.length - 1) {
+            setCurrentStep(currentStep + 1);
         } else {
-            submitQuestionnaire(newAnswers);
+            startProcessing();
         }
     };
 
-    const submitQuestionnaire = async (finalAnswers: string[]) => {
-        setIsSubmitting(true);
-        try {
-            const response = await fetch('/api/process-questionnaire', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ answers: finalAnswers, email: 'teste@exemplo.com' }),
+    const startProcessing = () => {
+        setIsProcessing(true);
+        // Simulação de progresso da IA para gerar valor percebido
+        let interval = setInterval(() => {
+            setProgress(prev => {
+                if (prev >= 98) {
+                    clearInterval(interval);
+                    completeQuestionnaire();
+                    return 98;
+                }
+                return prev + 1;
             });
-            if (response.ok) setIsFinished(true);
-        } catch (error) {
-            console.error('Erro:', error);
-        } finally {
-            setIsSubmitting(false);
-        }
+        }, 50);
     };
 
-    if (isFinished) {
+    const completeQuestionnaire = async () => {
+        // Aqui enviaríamos os dados para a API e redirecionaríamos para o checkout
+        console.log("Finalizado!", answers);
+        // Simulação de delay final
+        setTimeout(() => {
+            window.location.href = "https://pay.kiwify.com.br/G27PtZp";
+        }, 1500);
+    };
+
+    if (isProcessing) {
         return (
-            <div className="text-center p-12 glass rounded-[3rem] animate-in fade-in zoom-in duration-700 max-w-lg mx-auto">
-                <div className="w-20 h-20 glass rounded-full flex items-center justify-center mx-auto mb-8 border-cyan-500/50">
-                    <Heart className="w-10 h-10 text-cyan-400 animate-pulse" />
+            <div className="max-w-md mx-auto text-center py-20 px-6">
+                <Loader2 className="w-12 h-12 animate-spin mx-auto mb-6 text-zinc-900" />
+                <h2 className="text-3xl font-bold mb-2">Processando seu perfil...</h2>
+                <p className="text-zinc-500 mb-8">Nossa IA está cruzando seus dados com padrões de cronobiologia.</p>
+
+                <div className="progress-bar w-full">
+                    <div className="progress-fill" style={{ width: `${progress}%` }} />
                 </div>
-                <h2 className="text-4xl font-black mb-4 tracking-tighter">PROTOCOLO ATIVO!</h2>
-                <p className="text-slate-400 text-lg leading-relaxed">
-                    Nossos servidores estão processando seu mapa 24h. Verifique sua caixa de entrada em instantes.
-                </p>
+                <p className="mt-4 text-xs font-bold text-zinc-400 uppercase tracking-widest">{progress}% Concluído</p>
             </div>
         );
     }
 
     return (
-        <div className="w-full max-w-3xl mx-auto px-4">
+        <div className="max-w-2xl mx-auto px-6">
             <div className="mb-12">
-                <div className="h-1 bg-white/5 w-full rounded-full overflow-hidden">
-                    <motion.div
-                        className="h-full bg-gradient-to-r from-cyan-400 to-purple-600"
-                        animate={{ width: `${((step + 1) / QUESTIONS.length) * 100}%` }}
-                    />
+                <div className="progress-bar">
+                    <div className="progress-fill" style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }} />
                 </div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] mt-4 text-zinc-400 text-center">
+                    Passo {currentStep + 1} de {STEPS.length}
+                </p>
             </div>
 
             <AnimatePresence mode="wait">
                 <motion.div
-                    key={step}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 1.05 }}
-                    className="glass p-12 md:p-16 rounded-[3.5rem] border-white/10"
+                    key={currentStep}
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-10"
                 >
-                    <span className="text-cyan-500 font-bold text-xs tracking-widest uppercase mb-4 block">Pergunta {step + 1}/5</span>
-                    <h2 className="text-3xl md:text-5xl font-black mb-12 tracking-tight leading-none text-white">
-                        {QUESTIONS[step]}
+                    <h2 className="text-3xl md:text-5xl font-extrabold text-black leading-tight">
+                        {STEPS[currentStep].question}
                     </h2>
 
-                    <input
-                        autoFocus
-                        type="text"
-                        value={currentAnswer}
-                        onChange={(e) => setCurrentAnswer(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleNext()}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-2xl text-white focus:ring-4 focus:ring-cyan-500/20 focus:outline-none transition-all placeholder:text-white/10"
-                        placeholder="Sua resposta..."
-                    />
-
-                    <button
-                        onClick={handleNext}
-                        disabled={!currentAnswer.trim() || isSubmitting}
-                        className="mt-12 flex items-center justify-center gap-4 w-full btn-glow text-white font-bold py-7 rounded-2xl text-xl transition-all"
-                    >
-                        {isSubmitting ? (
-                            "RECODIFICANDO SUA ROTINA..."
-                        ) : step === QUESTIONS.length - 1 ? (
-                            <>FINALIZAR MEU PROTOCOLO <Send className="w-6 h-6" /></>
-                        ) : (
-                            <>PRÓXIMA ETAPA <ChevronRight className="w-6 h-6" /></>
-                        )}
-                    </button>
-
-                    <div className="mt-8 flex justify-center items-center gap-6 opacity-40">
-                        <div className="flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase"><ShieldCheck className="w-4 h-4" /> IA Encrypt</div>
-                        <div className="flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase"><Zap className="w-4 h-4" /> Fast AI</div>
+                    <div className="grid gap-4">
+                        {STEPS[currentStep].options.map((option, idx) => (
+                            <div
+                                key={idx}
+                                onClick={() => handleOptionClick(option)}
+                                className="option-card group flex justify-between items-center"
+                            >
+                                <span className="text-xl font-medium text-zinc-600 group-hover:text-black transition-colors">
+                                    {option}
+                                </span>
+                                <div className="w-6 h-6 rounded-full border border-zinc-200 group-hover:border-black group-hover:bg-black transition-all" />
+                            </div>
+                        ))}
                     </div>
                 </motion.div>
             </AnimatePresence>
+
+            <div className="mt-12 text-center">
+                <p className="text-xs text-zinc-300 flex items-center justify-center gap-2">
+                    <CheckCircle2 className="w-3 h-3" /> Suas respostas são anônimas e protegidas
+                </p>
+            </div>
         </div>
     );
 }
