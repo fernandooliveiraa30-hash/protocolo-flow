@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Send, CheckCircle2, Heart } from 'lucide-react';
+import { ChevronRight, Send, CheckCircle2, Heart, ShieldCheck } from 'lucide-react';
 
 const QUESTIONS = [
     "Como podemos te chamar?",
